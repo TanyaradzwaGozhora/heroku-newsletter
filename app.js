@@ -1,8 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require("request");
-//the app which is a new instant of express
+const https = require('https');
 const app = express();
+
 
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({
@@ -13,6 +14,14 @@ app.get("/", function(req, res) {
   res.sendFile(__dirname + "/signup.html")
 });
 
+app.get('/success', function(req, res){
+  res.sendFile('./success.html')
+});
+
+app.get('/failure', function(req,res){
+  res.sendFile('./failure.html')
+});
+
 app.post("/", function(req, res) {
 
   var firstName = req.body.fName;
@@ -20,40 +29,42 @@ app.post("/", function(req, res) {
   var email = req.body.email;
 
   var data = {
-    members: [{
-      email_address: email,
-      status: "subscribed",
-      merge_fields: {
-        FNAME: firstName,
-        LNAME: lastName
+    members: [
+      {
+        email_address: email,
+        status:'subscribed',
+        merge_fields: {
+          FNAME: firstName,
+          LNAME: lastName
+        }
       }
-    }]
+    ]
   };
 
   var jsonData = JSON.stringify(data);
 
-  var options = {
-    url: "https://us3.api.mailchimp.com/3.0/lists/0c15f09ea5",
-    method: "POST",
-    //for authorisation, first string as any string and second one is our api
-    headers: {
-      "Authorization": "Tanya1 1be615e273ce324105d993d6ac4748fb-us3"
-    },
-    body: jsonData
+  const url = 'https://us3.api.mailchimp.com/3.0/lists/0c15f09ea5';
+
+  const options = {
+    method: 'POST',
+    auth: 'tanya10:2b5de7d91334c4f0549fda10e8f5dec1-us3'
   };
 
-  request(options, function(error, response, body) {
-    if (error) {
-      res.sendFile(__dirname + "failure.html");
+  const request = https.request(url, options, function(response){
+
+    if (response.statusCode === 200){
+      res.sendFile(__dirname + '/success')
     } else {
-      if (response.statusCode === 200) {
-        res.sendFile(__dirname + "success.html");
-      } else {
-        res.sendFile(__dirname + "failure.html");
-      }
+      res.sendFile(__dirname + '/failure')
     }
+
+    response.on('data', function(data){
+        console.log(JSON.parse(data));
+      })
   });
 
+  request.write(jsonData);
+  request.end();
 });
 
 app.post("/failure", function(req, res){
@@ -66,8 +77,7 @@ app.listen(process.env.PORT || 3000, function() {
 });
 
 // API Key
-// 1be615e273ce324105d993d6ac4748fb-us3
-// 1be615e273ce324105d993d6ac4748fb-us3
+// 2b5de7d91334c4f0549fda10e8f5dec1-us3
 
 // list ID
 // 0c15f09ea5
