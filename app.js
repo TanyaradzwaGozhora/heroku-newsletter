@@ -11,15 +11,15 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.get("/", function(req, res) {
-  res.sendFile(__dirname + "/signup.html")
+  res.sendFile(__dirname + "/public/signup.html")
 });
 
 app.get('/success', function(req, res){
-  res.sendFile('./success.html')
+  res.sendFile(__dirname + '/public/success.html')
 });
 
 app.get('/failure', function(req,res){
-  res.sendFile('./failure.html')
+  res.sendFile(__dirname + '/public/failure.html')
 });
 
 app.post("/", function(req, res) {
@@ -53,9 +53,9 @@ app.post("/", function(req, res) {
   const request = https.request(url, options, function(response){
 
     if (response.statusCode === 200){
-      res.sendFile(__dirname + '/success')
+      res.redirect('/success')
     } else {
-      res.sendFile(__dirname + '/failure')
+      res.redirect('/failure')
     }
 
     response.on('data', function(data){
